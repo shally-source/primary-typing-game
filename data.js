@@ -2,7 +2,7 @@
 // Configuration
 // ============================================
 const CONFIG = {
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw4o9c8Yp8ZafSCrwzlV4fDlhe_fO2V4L9GTKGH9CSi7HRXwzKGZ6c1cZahh9o1SfOg7Q/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx6_8uGQ1VrfoaNRJm8awEIZUYKCb_PWVVZuG_q0b1p8fzLT-EzMlAJNx8rEXn7s2qdYw/exec',
     GAME_DURATION: 300,
     DEFAULT_TEXT: "Welcome to our challenge!\nPlease load your article to start.",
     SHIFT_PATTERN: /[A-Z~!@#$%^&*()_+{}|:"<>?]/,
@@ -21,7 +21,6 @@ const ARTICLES = [
         content: `Apple Banana Car Doctor
 ABCDEFG
 Hijklmn
-
 !!@@##
 `
     },
