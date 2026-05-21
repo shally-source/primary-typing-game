@@ -2,7 +2,7 @@
 // Configuration
 // ============================================
 const CONFIG = {
-    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzAHrQvA7W-PSk9ZsP03EqYsoPzlMe9yD6mj37OOH5eP2_7iO_-ZEW3KHAJrZSH2JZzbA/exec',
+    SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw4o9c8Yp8ZafSCrwzlV4fDlhe_fO2V4L9GTKGH9CSi7HRXwzKGZ6c1cZahh9o1SfOg7Q/exec',
     GAME_DURATION: 300,
     DEFAULT_TEXT: "Welcome to our challenge!\nPlease load your article to start.",
     SHIFT_PATTERN: /[A-Z~!@#$%^&*()_+{}|:"<>?]/,
