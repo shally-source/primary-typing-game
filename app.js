@@ -610,7 +610,7 @@ function handleInput(char) {
         return;
     }
 
-    const isCorrect = char.toLowerCase() === targetChar.toLowerCase();
+    const isCorrect = char === targetChar;
 
     if (isCorrect) {
         state.correctKeys++;
@@ -770,9 +770,15 @@ async function uploadResults(results) {
             mode: 'no-cors',
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
+                // 補齊你試算表需要的所有欄位
+                studentClass: state.student.class || "",
+                studentSection: state.student.section || "",
                 studentName: state.student.name,
                 studentId: state.student.id,
-                ...results
+                score: results.score,
+                speed: results.speed,
+                accuracy: results.accuracy,
+                errors: state.errors
             })
         });
         dom.uploadStatus.textContent = '✅ 成績已同步至雲端';
