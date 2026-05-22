@@ -527,7 +527,12 @@ function updateHint() {
         return;
     }
 
-    let keyId = nextChar === ' ' ? 'key-space' : PUNC_MAP[nextChar] || `key-${nextChar}`; 
+    let keyId;
+    if (nextChar === ' ') {
+        keyId = 'key-space';
+    } else {
+        keyId = PUNC_MAP[nextChar] || PUNC_MAP[nextChar.toLowerCase()] || `key-${nextChar.toLowerCase()}`;
+    }
 
     const keyEl = getKey(keyId);
     if (keyEl) keyEl.classList.add('active-hint');
@@ -910,9 +915,15 @@ function setupEventListeners() {
         if (dom.hiddenInput.dataset.blocked === 'true') return;
 
         if (e.data) {
-            // Handle Shift+Letter combinations for capital letters
-            const char = e.data[e.data.length - 1];
-            if (char) handleInput(char);
+            // Handle multi-character input (e.g., paste, IME commit)
+            for (const ch of e.data) {
+                if (ch) handleInput(ch);
+            }
+        } else if (e.inputType === 'insertFromPaste' && dom.hiddenInput.value) {
+            // Fallback: handle pasted content
+            for (const ch of dom.hiddenInput.value) {
+                handleInput(ch);
+            }
         }
         dom.hiddenInput.value = '';
 
