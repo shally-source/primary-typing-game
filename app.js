@@ -500,7 +500,8 @@ function createCharSpan(char, index, isNewline = false) {
 
     if (index < state.userInput.length) {
         const inputChar = state.userInput[index];
-        const isCorrect = inputChar.toLowerCase() === char.toLowerCase();
+        // 移除 toLowerCase()，嚴格匹配大小寫
+        const isCorrect = inputChar === char; 
         span.classList.add(isCorrect ? 'correct' : 'incorrect');
     } else if (index === state.userInput.length) {
         span.classList.add('current');
@@ -526,13 +527,13 @@ function updateHint() {
         return;
     }
 
-    let keyId = nextChar === ' ' ? 'key-space' : PUNC_MAP[nextChar] || `key-${nextChar.toLowerCase()}`;
+    let keyId = nextChar === ' ' ? 'key-space' : PUNC_MAP[nextChar] || `key-${nextChar}`; 
 
     const keyEl = getKey(keyId);
     if (keyEl) keyEl.classList.add('active-hint');
 
-    if (CONFIG.SHIFT_PATTERN.test(nextChar)) {
-        const shiftKeyId = nextChar === nextChar.toLowerCase() ? 'key-shift-r' : 'key-shift-l';
+    if (nextChar === nextChar.toUpperCase() && nextChar !== nextChar.toLowerCase()) {
+        const shiftKeyId = 'key-shift-l'; // 統一提示左 Shift（也可根據習慣改右 Shift）
         getKey(shiftKeyId)?.classList.add('active-hint');
     }
 }
