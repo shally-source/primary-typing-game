@@ -217,6 +217,9 @@ function loginSuccess(account, studentData) {
     state.student.name = studentData.name;
     state.student.id = studentData.classId;
     state.student.account = account;
+    // 新增存入班級、班別
+    state.student.class = studentData.class;
+    state.student.section = studentData.class;
 
     dom.loginError.classList.remove('show');
     dom.studentInfoDisplay.textContent = `${studentData.name} (${studentData.classId})`;
