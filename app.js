@@ -610,7 +610,7 @@ function handleInput(char) {
         return;
     }
 
-    const isCorrect = char.toLowerCase() === targetChar.toLowerCase();
+    const isCorrect = char === targetChar;
 
     if (isCorrect) {
         state.correctKeys++;
