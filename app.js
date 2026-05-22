@@ -1,14 +1,12 @@
 // ==============================
-// 英文打字小勇士 - 修復完整版
-// 修復：大小寫、成績上傳、班級班別、錯字數
+// 修復完整版 - 可正常登入 + 大小寫區分 + 成績完整上傳
 // ==============================
-
 const state = {
     student: {
         name: "",
         id: "",
         account: "",
-        class: "",
+        className: "",
         section: ""
     },
     currentArticle: "",
@@ -24,13 +22,13 @@ const dom = {
     loginSection: document.getElementById("login-section"),
     gameSection: document.getElementById("game-section"),
     usernameInput: document.getElementById("username-input"),
-    passwordInput: document.getElementById("password-input"),
+    passwordInput: document.getElementById("login-btn"),
     loginBtn: document.getElementById("login-btn"),
     articleDisplay: document.getElementById("article-display"),
     inputArea: document.getElementById("input-area"),
     timerDisplay: document.getElementById("timer-display"),
     wpmDisplay: document.getElementById("wpm-display"),
-    accuracyDisplay: document.getElementById("accuracy-display"),
+    accuracyDisplay: document.getElementById("errors-display"),
     errorsDisplay: document.getElementById("errors-display"),
     scoreDisplay: document.getElementById("score-display"),
     restartBtn: document.getElementById("restart-btn"),
@@ -42,8 +40,10 @@ function loginSuccess(studentData, account) {
     state.student.name = studentData.name;
     state.student.id = studentData.classId;
     state.student.account = account;
-    state.student.class = studentData.class;
-    state.student.section = studentData.class;
+    // 從 classId 拆分年級班別（自動讀取，唔需要帳號有class欄位）
+    let cid = studentData.classId || "";
+    state.student.className = cid.slice(0,1);
+    state.student.section = cid.slice(1);
 
     dom.loginSection.style.display = "none";
     dom.gameSection.style.display = "block";
@@ -115,9 +115,7 @@ function endGame() {
     uploadResults({ score, speed: wpm, accuracy });
 }
 
-// ==============================
-// 🔒 修復：大小寫嚴格區分
-// ==============================
+// 🔒 已修復：大小寫**嚴格區分**
 dom.inputArea.addEventListener("input", (e) => {
     if (!state.isGameActive) startGame();
 
@@ -125,7 +123,7 @@ dom.inputArea.addEventListener("input", (e) => {
     const lastChar = inputValue.slice(-1);
     const targetChar = state.currentArticle[state.typedChars.length];
 
-    // 嚴格區分大小寫
+    // 完全嚴格匹配，大細寫唔相通過
     const isCorrect = lastChar === targetChar;
 
     if (!isCorrect) state.errors++;
@@ -153,9 +151,7 @@ function updateDisplay() {
     dom.articleDisplay.innerHTML = displayHTML;
 }
 
-// ==============================
-// 📤 修復：完整上傳成績（班級、班別、錯字、分數）
-// ==============================
+// 📤 修復：正確送出班級/班別/學號/錯字/分數
 async function uploadResults(results) {
     if (state.student.id === "DEMO") {
         dom.uploadStatus.textContent = "✅ 示範模式（成績不記錄）";
@@ -169,7 +165,7 @@ async function uploadResults(results) {
             mode: "no-cors",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({
-                studentClass: state.student.class,
+                studentClass: state.student.className,
                 studentSection: state.student.section,
                 studentId: state.student.id,
                 studentName: state.student.name,
@@ -187,9 +183,7 @@ async function uploadResults(results) {
     }
 }
 
-// ==============================
-// 按鈕事件
-// ==============================
+// 登入按鈕
 dom.loginBtn.addEventListener("click", () => {
     const account = dom.usernameInput.value.trim();
     const password = dom.passwordInput.value.trim();
@@ -198,7 +192,7 @@ dom.loginBtn.addEventListener("click", () => {
     if (studentData && studentData.password === password) {
         loginSuccess(studentData, account);
     } else {
-        alert("賬號或密碼錯誤");
+        alert("帳號或密碼錯誤");
     }
 });
 
