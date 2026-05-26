@@ -762,31 +762,43 @@ function togglePause() {
     }
 }
 
-async function uploadResults(results) {
-    // 示範帳號不上傳成績
-    if (state.student.id === 'DEMO') {
-        dom.uploadStatus.textContent = '✅ 示範模式（成績不記錄）';
-        dom.uploadStatus.className = 'upload-status success';
-        return;
-    }
-    
-    try {
-        await fetch(CONFIG.SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-                studentName: state.student.name,
-                studentId: state.student.id,
-                ...results
-            })
-        });
-        dom.uploadStatus.textContent = '✅ 成績已同步至雲端';
-        dom.uploadStatus.className = 'upload-status success';
-    } catch {
-        dom.uploadStatus.textContent = '❌ 同步失敗';
-        dom.uploadStatus.className = 'upload-status error';
-    }
+function uploadResult(stats, grade) {
+    const uploadStatus = document.getElementById('uploadStatus');
+    if (!uploadStatus) return;
+
+    uploadStatus.textContent = '正在同步成績至雲端...';
+    uploadStatus.className = 'upload-status uploading';
+
+    // 這裡對應您要的資料，從登入的學生資料(state.student)和這次的成績(stats)中抓取
+    const payload = {
+        className: state.student.class || '',     // 學生班級 (例如: pl)
+        classLetter: state.student.section || '', // 學生班別 (例如: a)
+        studentNumber: state.student.number || '',// 學生學號 (例如: 1)
+        accuracy: stats.accuracy,                 // 準確率
+        speed: stats.wpm,                         // 打字速度
+        errors: stats.errors,                     // 錯誤字數
+        score: stats.score                        // 分數 (依照您的網頁計分規則)
+    };
+
+    // 發送給 Google 試算表後台通道
+    fetch(CONFIG.SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // 配合 Google Apps Script 的特殊網路模式
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        // 因為使用了 no-cors 模式，只要沒有斷網，通常代表傳送成功了
+        uploadStatus.textContent = '✅ 成績同步成功！';
+        uploadStatus.className = 'upload-status success';
+    })
+    .catch(error => {
+        console.error('上傳失敗:', error);
+        uploadStatus.textContent = '❌ 同步失敗，請聯繫老師';
+        uploadStatus.className = 'upload-status error';
+    });
 }
 
 // ============================================
