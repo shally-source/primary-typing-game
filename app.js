@@ -762,43 +762,65 @@ function togglePause() {
     }
 }
 
-function uploadResult(stats, grade) {
-    const uploadStatus = document.getElementById('uploadStatus');
-    if (!uploadStatus) return;
+// ====== 請複製這段，並完整替換掉原本的 uploadResults 功能 ======
+async function uploadResults(results) {
+    // 示範帳號不上傳成績
+    if (state.student.id === 'DEMO') {
+        dom.uploadStatus.textContent = '✅ 示範模式（成績不記錄）';
+        dom.uploadStatus.className = 'upload-status success';
+        return;
+    }
+    
+    dom.uploadStatus.textContent = '正在同步成績至雲端...';
+    dom.uploadStatus.className = 'upload-status uploading';
 
-    uploadStatus.textContent = '正在同步成績至雲端...';
-    uploadStatus.className = 'upload-status uploading';
+    // 這裡我們把學生的學號（例如：p2a01）拆解成您要的 班級、班別、學號
+    let className = '';
+    let classLetter = '';
+    let studentNumber = '';
+    
+    const studentId = state.student.id || ''; // 讀取網頁裡的學生編號 (例如 p2a01)
+    
+    if (studentId.length >= 5) {
+        className = studentId.substring(0, 2);     // 抓出前兩個字，例如 "p2"
+        classLetter = studentId.substring(2, 3);   // 抓出第三個字，例如 "a"
+        studentNumber = studentId.substring(3);    // 抓出後面剩下的數字，例如 "01"
+    } else {
+        // 如果防呆機制發現格式不對，就直接寫入原本的編號
+        className = studentId;
+    }
 
-    // 這裡對應您要的資料，從登入的學生資料(state.student)和這次的成績(stats)中抓取
+    // 封裝成 Google 後台看得懂的精準中文欄位數據
     const payload = {
-        className: state.student.class || '',     // 學生班級 (例如: pl)
-        classLetter: state.student.section || '', // 學生班別 (例如: a)
-        studentNumber: state.student.number || '',// 學生學號 (例如: 1)
-        accuracy: stats.accuracy,                 // 準確率
-        speed: stats.wpm,                         // 打字速度
-        errors: stats.errors,                     // 錯誤字數
-        score: stats.score                        // 分數 (依照您的網頁計分規則)
+        className: className.toUpperCase(),        // 班級轉大寫 (例如: P2)
+        classLetter: classLetter.toUpperCase(),    // 班別轉大寫 (例如: A)
+        studentNumber: studentNumber,              // 學號 (例如: 01)
+        accuracy: results.accuracy,                // 準確率
+        speed: results.speed,                      // 打字速度 (字/秒)
+        errors: results.errors,                    // 錯誤字數
+        score: results.score                       // 分數
     };
-
-    // 發送給 Google 試算表後台通道
-    fetch(CONFIG.SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // 配合 Google Apps Script 的特殊網路模式
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        // 因為使用了 no-cors 模式，只要沒有斷網，通常代表傳送成功了
-        uploadStatus.textContent = '✅ 成績同步成功！';
-        uploadStatus.className = 'upload-status success';
-    })
-    .catch(error => {
-        console.error('上傳失敗:', error);
-        uploadStatus.textContent = '❌ 同步失敗，請聯繫老師';
-        uploadStatus.className = 'upload-status error';
-    });
+    
+    try {
+        // 發送數據給 Google 試算表
+        await fetch(CONFIG.SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // 配合 Google 雲端的特殊安全模式
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        // 成功時顯示
+        dom.uploadStatus.textContent = '✅ 成績已成功同步至試算表！';
+        dom.uploadStatus.className = 'upload-status success';
+    } catch (error) {
+        // 失敗時顯示
+        console.error('上傳失敗原因:', error);
+        dom.uploadStatus.textContent = '❌ 同步失敗，請截圖聯繫老師';
+        dom.uploadStatus.className = 'upload-status error';
+    }
 }
 
 // ============================================
