@@ -186,6 +186,7 @@ function parseStudentIdentity(studentData, account) {
     const match = normalized.match(/^([A-Z0-9]+?)([A-Z])([0-9]*)$/);
 
     const explicitNumber = [
+        studentData.Number,
         studentData.number,
         studentData.studentNumber,
         studentData.studentNo,
