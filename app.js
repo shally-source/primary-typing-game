@@ -822,6 +822,7 @@ async function uploadResults(results) {
         grade: (state.student.grade || className).toUpperCase(),
         className: (state.student.className || classLetter).toUpperCase(),
         number: state.student.number || studentNumber,
+        name: state.student.name,
         accuracy: results.accuracy,
         speed: results.speed,
         errors: results.errors,
