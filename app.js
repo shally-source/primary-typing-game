@@ -14,7 +14,14 @@ const state = {
     bestStreak: 0,
     startTime: null,
     pausedTime: 0,
-    student: { name: '', id: '', account: '' }
+    student: {
+        name: '',
+        id: '',
+        account: '',
+        grade: '',
+        className: '',
+        number: ''
+    }
 };
 
 // ============================================
@@ -173,6 +180,28 @@ const ConfettiSystem = {
 // ============================================
 // Login Functions
 // ============================================
+function parseStudentIdentity(studentData, account) {
+    const classId = studentData.classId || studentData.id || '';
+    const normalized = String(classId).trim().toUpperCase();
+    const match = normalized.match(/^([A-Z0-9]+?)([A-Z])([0-9]*)$/);
+
+    return {
+        name: studentData.name || '',
+        id: classId,
+        account: account || '',
+        grade: String(studentData.grade || (match ? match[1] : '') || '').toUpperCase(),
+        className: String(studentData.className || (match ? match[2] : '') || '').toUpperCase(),
+        number: String(studentData.number || (match ? match[3] : '') || '')
+    };
+}
+
+function formatStudentInfoLabel(student) {
+    const classLabel = [student.grade, student.className].filter(Boolean).join('').toUpperCase();
+    const numberLabel = student.number ? `(${student.number})` : '';
+    const classPart = classLabel ? `${classLabel}${numberLabel}` : '';
+    return classPart ? `${classPart} ${student.name}`.trim() : student.name;
+}
+
 function handleLogin() {
     const account = dom.loginAccount.value.replace(/\s+/g, '').toLowerCase();
     const password = dom.loginPassword.value.replace(/\s+/g, '');
@@ -214,12 +243,10 @@ function handleLogin() {
 }
 
 function loginSuccess(account, studentData) {
-    state.student.name = studentData.name;
-    state.student.id = studentData.classId;
-    state.student.account = account;
+    state.student = parseStudentIdentity(studentData, account);
 
     dom.loginError.classList.remove('show');
-    dom.studentInfoDisplay.textContent = `${studentData.name} (${studentData.classId})`;
+    dom.studentInfoDisplay.textContent = formatStudentInfoLabel(state.student);
 
     dom.loggedInName.textContent = studentData.name;
     dom.userAvatar.textContent = studentData.name.charAt(0);
@@ -259,7 +286,7 @@ function loginSuccess(account, studentData) {
 }
 
 function handleLogout() {
-    state.student = { name: '', id: '', account: '' };
+    state.student = { name: '', id: '', account: '', grade: '', className: '', number: '' };
     dom.studentInfoDisplay.textContent = '未登錄';
     dom.loggedInInfo.classList.add('hidden');
     dom.openLoginBtn.classList.remove('hidden');
@@ -790,15 +817,15 @@ async function uploadResults(results) {
         className = studentId;
     }
 
-    // 封裝成 Google 後台看得懂的精準中文欄位數據
+    // 封裝成 Google 後台看得懂的精準欄位數據
     const payload = {
-        className: className.toUpperCase(),        // 班級轉大寫 (例如: P2)
-        classLetter: classLetter.toUpperCase(),    // 班別轉大寫 (例如: A)
-        studentNumber: studentNumber,              // 學號 (例如: 01)
-        accuracy: results.accuracy,                // 準確率
-        speed: results.speed,                      // 打字速度 (字/秒)
-        errors: results.errors,                    // 錯誤字數
-        score: results.score                       // 分數
+        grade: (state.student.grade || className).toUpperCase(),
+        className: (state.student.className || classLetter).toUpperCase(),
+        number: state.student.number || studentNumber,
+        accuracy: results.accuracy,
+        speed: results.speed,
+        errors: results.errors,
+        score: results.score
     };
     
     try {
