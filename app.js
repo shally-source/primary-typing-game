@@ -185,13 +185,26 @@ function parseStudentIdentity(studentData, account) {
     const normalized = String(classId).trim().toUpperCase();
     const match = normalized.match(/^([A-Z0-9]+?)([A-Z])([0-9]*)$/);
 
+    const explicitNumber = [
+        studentData.number,
+        studentData.studentNumber,
+        studentData.studentNo,
+        studentData.stuNo,
+        studentData.num,
+        studentData.studentId
+    ].find(value => value !== undefined && value !== null && String(value).trim() !== '');
+
+    const parsedNumber = explicitNumber !== undefined
+        ? String(explicitNumber).trim()
+        : (match && match[3] ? match[3] : '');
+
     return {
         name: studentData.name || '',
         id: classId,
         account: account || '',
         grade: String(studentData.grade || (match ? match[1] : '') || '').toUpperCase(),
         className: String(studentData.className || (match ? match[2] : '') || '').toUpperCase(),
-        number: String(studentData.number || (match ? match[3] : '') || '')
+        number: parsedNumber
     };
 }
 
@@ -821,7 +834,7 @@ async function uploadResults(results) {
     const payload = {
         grade: (state.student.grade || className).toUpperCase(),
         className: (state.student.className || classLetter).toUpperCase(),
-        number: state.student.number || studentNumber,
+        number: state.student.number || studentNumber || '',
         name: state.student.name,
         accuracy: results.accuracy,
         speed: results.speed,
