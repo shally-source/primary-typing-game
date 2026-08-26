@@ -41,6 +41,8 @@ const dom = {
     resultModal: document.getElementById('resultModal'),
     articleModal: document.getElementById('articleModal'),
     articleGrid: document.getElementById('articleGrid'),
+    uploadArticleBtn: document.getElementById('uploadArticleBtn'),
+    articleFileInput: document.getElementById('articleFileInput'),
     uploadStatus: document.getElementById('uploadStatus'),
     resultStats: document.getElementById('resultStats'),
     resultTitle: document.getElementById('resultTitle'),
@@ -332,21 +334,8 @@ function renderArticleModal() {
     }).join('');
 }
 
-function openArticleModal() {
-    if (!state.student.name) {
-        dom.loginModal.classList.remove('hidden');
-        dom.loginAccount.focus();
-        return;
-    }
-    renderArticleModal();
-    dom.articleModal.classList.remove('hidden');
-}
-
-function selectArticle(articleId) {
-    const article = ARTICLES.find(a => a.id === articleId);
-    if (!article) return;
-
-    state.targetText = article.content;
+function loadArticleContent(content) {
+    state.targetText = content;
     state.userInput = '';
     state.gameActive = false;
     state.isPaused = false;
@@ -372,6 +361,59 @@ function selectArticle(articleId) {
     renderText();
     updateHint();
     dom.hiddenInput.focus();
+}
+
+function filterUploadedArticle(text) {
+    return text
+        .replace(/\r\n?/g, '\n')
+        .replace(/[^A-Za-z.,? \n]/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+function handleArticleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+        window.alert('請選擇 .txt 純文字檔案喔！');
+        event.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        const content = filterUploadedArticle(String(reader.result || ''));
+        if (!content || !/[A-Za-z]/.test(content)) {
+            window.alert('這個檔案裡面沒有英文可以打字喔！');
+            event.target.value = '';
+            return;
+        }
+
+        loadArticleContent(content);
+        event.target.value = '';
+    };
+    reader.onerror = () => {
+        window.alert('讀取檔案失敗，請再試一次喔！');
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function openArticleModal() {
+    if (!state.student.name) {
+        dom.loginModal.classList.remove('hidden');
+        dom.loginAccount.focus();
+        return;
+    }
+    renderArticleModal();
+    dom.articleModal.classList.remove('hidden');
+}
+
+function selectArticle(articleId) {
+    const article = ARTICLES.find(a => a.id === articleId);
+    if (!article) return;
+    loadArticleContent(article.content);
 }
 
 // ============================================
@@ -912,6 +954,11 @@ function setupEventListeners() {
         const card = e.target.closest('.article-card');
         if (card) selectArticle(card.dataset.id);
     });
+
+    dom.uploadArticleBtn.addEventListener('click', () => {
+        dom.articleFileInput.click();
+    });
+    dom.articleFileInput.addEventListener('change', handleArticleFileUpload);
 
     document.getElementById('openArticleBtn').addEventListener('click', openArticleModal);
 
